@@ -9,21 +9,19 @@ const state = {
   tempDisplay: null,
   increaseBtn: null,
   decreaseBtn: null,
+  landscapeDiv: null
 };
 
 
 // wave 2
-
-//determine color
-const getColorForTemp = (temp) => {
-  if (temp >=80) return 'red';
+const getTextColor = (temp) => {
+  if (temp >= 80) return 'red';
   if (temp >= 70) return 'orange';
   if (temp >= 60) return 'yellow';
   if (temp >= 50) return 'green';
-  return 'teal';
+  return 'blue';
 };
 
-//determine landscape
 const getLandscapeForTemp = (temp) => {
   if (temp >= 80) return "🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂";
   if (temp >= 70) return "🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷";
@@ -31,32 +29,26 @@ const getLandscapeForTemp = (temp) => {
   return "🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲";
 };
 
-//update temp display
-const updateTemperatureDisplay = () => {
-  state.tempDisplay.textContent = state.currentTemp + '°F';
+const updateTempDisplay = () => {
+  state.tempDisplay.textContent = `${state.currentTemp}°F`;
+  
+  state.tempDisplay.classList.remove('red', 'orange', 'yellow', 'green', 'blue');
 
-  const color = getColorForTemp(state.currentTemp);
-
-  state.tempDisplay.style.backgroundColor = color;
-  if (color === 'yellow') {
-    state.tempDisplay.style.color = 'black';
-  } else {
-    state.tempDisplay.style.color = 'white';
-  }
+  const color = getTextColor(state.currentTemp);
+  state.tempDisplay.classList.add(color);
 
   const landscape = getLandscapeForTemp(state.currentTemp);
-  state.landscapeDiv.textContent = landscape;
+  state.landscapeDiv.textContent = landscape
 };
 
-//event handling
-const handleIncreaseTemp = () => {
+const increaseTemp = () => {
   state.currentTemp++;
-  updateTemperatureDisplay();
+  updateTempDisplay();
 };
 
-const handleDecreaseTemp = () => {
+const decreaseTemp = () => {
   state.currentTemp--;
-  updateTemperatureDisplay();
+  updateTempDisplay();
 };
 
 
@@ -69,8 +61,8 @@ const handleCityInput = (event) => {
 
 const registerEvents = () => {
   state.cityInput.addEventListener('input', handleCityInput);
-  state.increaseBtn.addEventListener('click', handleIncreaseTemp);
-  state.decreaseBtn.addEventListener('click', handleDecreaseTemp);
+  state.increaseBtn.addEventListener('click', increaseTemp);
+  state.decreaseBtn.addEventListener('click', decreaseTemp);
 };
 
 const loadControls = () => {
@@ -85,7 +77,32 @@ const loadControls = () => {
 const onLoaded = () => {
   loadControls();
   registerEvents();
-  updateTemperatureDisplay();
+  updateTempDisplay();
+
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//wave 5
+
+
 onLoaded();
+
+
+
+
+
+//wave 5
