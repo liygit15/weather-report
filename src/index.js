@@ -14,6 +14,8 @@ const state = {
   skyDisplay: null,
   gardenBackground: null,
   cityNameReset: null,
+  tempConvertBt: false,
+  isCelsius: false
 };
 
 // wave 2
@@ -51,7 +53,8 @@ const getTempData = (temp) => {
 };
 
 const updateTempDisplay = () => {
-  state.tempDisplay.textContent = `${state.currentTemp}°F`;
+  const unit = state.isCelsius ? '°C' : '°F';
+  state.tempDisplay.textContent = `${state.currentTemp}${unit}`;
   const tempData = getTempData(state.currentTemp);
 
   state.tempDisplay.classList.remove('red', 'orange', 'yellow', 'green', 'yellow-green');
@@ -80,7 +83,7 @@ const handleCityInput = (event) => {
 const findLatitudeAndLongitude = (query) => {
   let latitude, longitude;
   return axios
-    .get('http://localhost:5000/location',
+    .get('https://ada-weather-report-proxy-server.onrender.com/location',
       {params:{q: query}})
     .then((location) => {
       latitude = location.data[0].lat;
@@ -91,7 +94,7 @@ const findLatitudeAndLongitude = (query) => {
 
 const findWeather = (latitude, longitude) => {
   return axios
-    .get('http://localhost:5000/weather',
+    .get('https://ada-weather-report-proxy-server.onrender.com/weather',
       {params: {lat:latitude, lon:longitude}})
     .then((weather) => {
       const Kelvintemp = weather.data.main.temp;
@@ -164,6 +167,18 @@ const resetCityName = () => {
   state.cityDisplay.textContent = 'Seattle';
 };
 
+// enhancements
+const tempConvert = () =>{
+  if (!state.isCelsius) {
+    state.currentTemp = Math.round((state.currentTemp - 32) * 5 / 9);
+    state.isCelsius = true;
+  } else {
+    state.currentTemp = Math.round((state.currentTemp * 9 / 5) + 32);
+    state.isCelsius = false;
+  }
+  updateTempDisplay();
+};
+
 const registerEvents = () => {
   state.cityInput.addEventListener('input', handleCityInput);
   state.increaseBtn.addEventListener('click', increaseTemp);
@@ -173,6 +188,7 @@ const registerEvents = () => {
   });
   state.skySelect.addEventListener('change', handleSkyChange);
   state.cityNameReset.addEventListener('click', resetCityName);
+  state.tempConvertBt.addEventListener('click', tempConvert);
 };
 
 const loadControls = () => {
@@ -187,6 +203,7 @@ const loadControls = () => {
   state.skyDisplay = document.getElementById('sky');
   state.gardenBackground = document.getElementById('gardenContent');
   state.cityNameReset = document.getElementById('cityNameReset');
+  state.tempConvertBt = document.getElementById('temp_conversion_bt');
 };
 
 const onLoaded = () => {
