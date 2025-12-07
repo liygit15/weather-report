@@ -80,7 +80,7 @@ const handleCityInput = (event) => {
 const findLatitudeAndLongitude = (query) => {
   let latitude, longitude;
   return axios
-    .get('http://localhost:5000/location',
+    .get('http://https://ada-weather-report-proxy-server.onrender.com/location',
       {params:{q: query}})
     .then((location) => {
       latitude = location.data[0].lat;
@@ -91,7 +91,7 @@ const findLatitudeAndLongitude = (query) => {
 
 const findWeather = (latitude, longitude) => {
   return axios
-    .get('http://localhost:5000/weather',
+    .get('http://https://ada-weather-report-proxy-server.onrender.com/weather',
       {params: {lat:latitude, lon:longitude}})
     .then((weather) => {
       const Kelvintemp = weather.data.main.temp;
