@@ -1,64 +1,74 @@
 'use strict';
 
 const state = {
-  cityName: 'Seattle',
-  cityInput: null,
-  cityDisplay: null,
-  //have to update this to get current temp from API?
   currentTemp: 60,
   tempDisplay: null,
   increaseBtn: null,
   decreaseBtn: null,
+  cityName: 'Seattle',
+  cityInput: null,
+  cityDisplay: null,
   currentTempButton: false,
+  landscapeDiv: null,
+  skySelect: null,
+  skyDisplay: null,
+  gardenBackground: null,
+  cityNameReset: null,
 };
 
 // wave 2
-//determine color
-const getColorForTemp = (temp) => {
-  if (temp >=80) return 'red';
-  if (temp >= 70) return 'orange';
-  if (temp >= 60) return 'yellow';
-  if (temp >= 50) return 'green';
-  return 'teal';
-};
-
-//determine landscape
-const getLandscapeForTemp = (temp) => {
-  if (temp >= 80) return '🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂';
-  if (temp >= 70) return '🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷';
-  if (temp >= 60) return '🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃';
-  return '🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲';
-};
-
-//update temp display
-const updateTemperatureDisplay = () => {
-  state.tempDisplay.textContent = state.currentTemp + '°F';
-
-  const color = getColorForTemp(state.currentTemp);
-
-  state.tempDisplay.style.backgroundColor = color;
-  if (color === 'yellow') {
-    state.tempDisplay.style.color = 'black';
-  } else {
-    state.tempDisplay.style.color = 'white';
+const getTempData = (temp) => {
+  if (temp >= 80) {
+    return {
+      colorClass: 'red',
+      landscape: '🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂'
+    };
   }
-
-  const landscape = getLandscapeForTemp(state.currentTemp);
-  state.landscapeDiv.textContent = landscape;
+  else if (temp >= 70) {
+    return {
+      colorClass: 'orange',
+      landscape: '🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷'
+    };
+  }
+  else if (temp >= 60) {
+    return {
+      colorClass: 'yellow',
+      landscape: '🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃'
+    };
+  }
+  else if (temp >= 50){
+    return {
+      colorClass: 'green',
+      landscape: '🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲'
+    };
+  }
+  else {
+    return {
+      colorClass: 'yellow-green',
+      landscape: '🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲'
+    };
+  }
 };
 
-//event handling
-const handleIncreaseTemp = () => {
+const updateTempDisplay = () => {
+  state.tempDisplay.textContent = `${state.currentTemp}°F`;
+  const tempData = getTempData(state.currentTemp);
+
+  state.tempDisplay.classList.remove('red', 'orange', 'yellow', 'green', 'yellow-green');
+  state.tempDisplay.classList.add(tempData.colorClass);
+
+  state.landscapeDiv.textContent = tempData.landscape;
+};
+
+const increaseTemp = () => {
   state.currentTemp++;
-  updateTemperatureDisplay();
+  updateTempDisplay();
 };
 
-const handleDecreaseTemp = () => {
+const decreaseTemp = () => {
   state.currentTemp--;
-  updateTemperatureDisplay();
+  updateTempDisplay();
 };
-
-
 
 // wave 3
 const handleCityInput = (event) => {
@@ -72,9 +82,9 @@ const findLatitudeAndLongitude = (query) => {
   return axios
     .get('http://localhost:5000/location',
       {params:{q: query}})
-    .then((response) => {
-      latitude = response.data[0].lat;
-      longitude = response.data[0].lon;
+    .then((location) => {
+      latitude = location.data[0].lat;
+      longitude = location.data[0].lon;
       return {latitude, longitude};
     });
 };
@@ -83,11 +93,10 @@ const findWeather = (latitude, longitude) => {
   return axios
     .get('http://localhost:5000/weather',
       {params: {lat:latitude, lon:longitude}})
-    .then((response) => {
-      console.log(response);
-      const Kelvintemp = response.data.main.temp;
-      const Fahtemp = Math.round((Kelvintemp - 273.15) * (9 / 5) + 32);
-      return Fahtemp;
+    .then((weather) => {
+      const Kelvintemp = weather.data.main.temp;
+      const Ftemp = Math.round((Kelvintemp - 273.15) * (9 / 5) + 32);
+      return Ftemp;
     });
 };
 
@@ -96,9 +105,9 @@ const getTempFromInput = (query) => {
     .then((location) => {
       return findWeather(location.latitude, location.longitude);
     })
-    .then((weather) => {
-      state.tempValue = weather;
-      return state.tempValue;
+    .then((Ftemp) => {
+      state.currentTemp = Ftemp;
+      return state.currentTemp;
     })
     .catch((error) => {
       console.log('Something went wrong!', error);
@@ -107,8 +116,46 @@ const getTempFromInput = (query) => {
 
 const updateTempFromInput = (query) => {
   return getTempFromInput(query)
-    //  need to fix this
-    .then(() => refreshTempUI());
+    .then(() => updateTempDisplay());
+};
+
+//wave 5 & background from wave2
+const getSkySelection = (selectedOption) => {
+  if (selectedOption === 'Sunny') {
+    return {
+      emojis: '☁️ ☁️ ☁️ ☀️ ☁️ ☁️',
+      weatherClass: 'sunny'
+    };
+  }
+
+  else if (selectedOption === 'Cloudy') {
+    return {
+      emojis: '☁️☁️ ☁️ ☁️☁️ ☁️ 🌤 ☁️ ☁️☁️',
+      weatherClass: 'cloudy'
+    };
+  }
+
+  else if (selectedOption === 'Rainy') {
+    return {
+      emojis: '🌧🌈⛈🌧🌧💧⛈🌧🌦🌧💧🌧🌧',
+      weatherClass: 'rainy'
+    };
+  }
+
+  else if (selectedOption === 'Snowy') {
+    return {
+      emojis: '🌨❄️🌨🌨❄️❄️🌨❄️🌨❄️❄️🌨🌨',
+      weatherClass: 'snowy'
+    };
+  }
+};
+
+const handleSkyChange = () => {
+  const selectedValue = state.skySelect.value;
+  const skyData = getSkySelection(selectedValue);
+  state.skyDisplay.textContent = skyData.emojis;
+  state.gardenBackground.classList.remove('sunny', 'cloudy', 'rainy', 'snowy');
+  state.gardenBackground.classList.add(skyData.weatherClass);
 };
 
 // wave 6
@@ -119,11 +166,12 @@ const resetCityName = () => {
 
 const registerEvents = () => {
   state.cityInput.addEventListener('input', handleCityInput);
-  state.increaseBtn.addEventListener('click', handleIncreaseTemp);
-  state.decreaseBtn.addEventListener('click', handleDecreaseTemp);
+  state.increaseBtn.addEventListener('click', increaseTemp);
+  state.decreaseBtn.addEventListener('click', decreaseTemp);
   state.currentTempButton.addEventListener('click', () => {
     updateTempFromInput(state.cityName);
   });
+  state.skySelect.addEventListener('change', handleSkyChange);
   state.cityNameReset.addEventListener('click', resetCityName);
 };
 
@@ -133,15 +181,19 @@ const loadControls = () => {
   state.tempDisplay = document.getElementById('tempValue');
   state.increaseBtn = document.getElementById('increaseTempControl');
   state.decreaseBtn = document.getElementById('decreaseTempControl');
-  state.landscapeDiv = document.getElementById('landscape');
   state.currentTempButton = document.getElementById('currentTempButton');
+  state.landscapeDiv = document.getElementById('landscape');
+  state.skySelect = document.getElementById('skySelect');
+  state.skyDisplay = document.getElementById('sky');
+  state.gardenBackground = document.getElementById('gardenContent');
   state.cityNameReset = document.getElementById('cityNameReset');
 };
 
 const onLoaded = () => {
   loadControls();
   registerEvents();
-  updateTemperatureDisplay();
+  updateTempDisplay();
+  handleSkyChange();
 };
 
 onLoaded();
