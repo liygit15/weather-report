@@ -9,11 +9,10 @@ const state = {
   tempDisplay: null,
   increaseBtn: null,
   decreaseBtn: null,
+  currentTempButton: false,
 };
 
-
 // wave 2
-
 //determine color
 const getColorForTemp = (temp) => {
   if (temp >=80) return 'red';
@@ -25,10 +24,10 @@ const getColorForTemp = (temp) => {
 
 //determine landscape
 const getLandscapeForTemp = (temp) => {
-  if (temp >= 80) return "🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂";
-  if (temp >= 70) return "🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷";
-  if (temp >= 60) return "🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃";
-  return "🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲";
+  if (temp >= 80) return '🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂';
+  if (temp >= 70) return '🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷';
+  if (temp >= 60) return '🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃';
+  return '🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲';
 };
 
 //update temp display
@@ -67,10 +66,65 @@ const handleCityInput = (event) => {
   state.cityDisplay.textContent = state.cityName;
 };
 
+// wave 4
+const findLatitudeAndLongitude = (query) => {
+  let latitude, longitude;
+  return axios
+    .get('http://localhost:5000/location',
+      {params:{q: query}})
+    .then((response) => {
+      latitude = response.data[0].lat;
+      longitude = response.data[0].lon;
+      return {latitude, longitude};
+    });
+};
+
+const findWeather = (latitude, longitude) => {
+  return axios
+    .get('http://localhost:5000/weather',
+      {params: {lat:latitude, lon:longitude}})
+    .then((response) => {
+      console.log(response);
+      const Kelvintemp = response.data.main.temp;
+      const Fahtemp = Math.round((Kelvintemp - 273.15) * (9 / 5) + 32);
+      return Fahtemp;
+    });
+};
+
+const getTempFromInput = (query) => {
+  return findLatitudeAndLongitude(query)
+    .then((location) => {
+      return findWeather(location.latitude, location.longitude);
+    })
+    .then((weather) => {
+      state.tempValue = weather;
+      return state.tempValue;
+    })
+    .catch((error) => {
+      console.log('Something went wrong!', error);
+    });
+};
+
+const updateTempFromInput = (query) => {
+  return getTempFromInput(query)
+    //  need to fix this
+    .then(() => refreshTempUI());
+};
+
+// wave 6
+const resetCityName = () => {
+  state.cityInput.value = 'Seattle';
+  state.cityDisplay.textContent = 'Seattle';
+};
+
 const registerEvents = () => {
   state.cityInput.addEventListener('input', handleCityInput);
   state.increaseBtn.addEventListener('click', handleIncreaseTemp);
   state.decreaseBtn.addEventListener('click', handleDecreaseTemp);
+  state.currentTempButton.addEventListener('click', () => {
+    updateTempFromInput(state.cityName);
+  });
+  state.cityNameReset.addEventListener('click', resetCityName);
 };
 
 const loadControls = () => {
@@ -80,6 +134,8 @@ const loadControls = () => {
   state.increaseBtn = document.getElementById('increaseTempControl');
   state.decreaseBtn = document.getElementById('decreaseTempControl');
   state.landscapeDiv = document.getElementById('landscape');
+  state.currentTempButton = document.getElementById('currentTempButton');
+  state.cityNameReset = document.getElementById('cityNameReset');
 };
 
 const onLoaded = () => {
