@@ -37,15 +37,15 @@ const getTextColor = (temp) => {
 
 const getLandscapeForTemp = (temp) => {
   if (state.isCelsius) {
-    if (temp >= 27) return "🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂";
-    if (temp >= 21) return "🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷";
-    if (temp >= 16) return "🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃";
-    return "🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲";
+    if (temp >= 27) return '🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂';
+    if (temp >= 21) return '🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷';
+    if (temp >= 16) return '🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃';
+    return '🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲';
   } else {
-    if (temp >= 80) return "🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂";
-    if (temp >= 70) return "🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷";
-    if (temp >= 60) return "🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃";
-    return "🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲";
+    if (temp >= 80) return '🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂';
+    if (temp >= 70) return '🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷';
+    if (temp >= 60) return '🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃';
+    return '🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲';
   }
 };
 
@@ -108,11 +108,15 @@ const getTempFromInput = (query) => {
       return findWeather(location.latitude, location.longitude);
     })
     .then((Ftemp) => {
-      state.currentTemp = Ftemp;
-      state.isCelsius = false;
+      if (state.isCelsius){
+        state.currentTemp = Math.round((Ftemp - 32) * 5 / 9);
+      } else {
+        state.currentTemp = Ftemp;
+      }
       return state.currentTemp;
     })
     .catch((error) => {
+      state.tempDisplay.textContent = '❌ Error';
       console.log('Something went wrong!', error);
     });
 };
@@ -186,12 +190,12 @@ const registerEvents = () => {
   state.cityInput.addEventListener('input', handleCityInput);
   state.increaseBtn.addEventListener('click', increaseTemp);
   state.decreaseBtn.addEventListener('click', decreaseTemp);
-  
+
   state.currentTempButton.addEventListener('click', () => {
     const cityName = state.cityInput.value;
     updateTempFromInput(cityName);
   });
-  
+
   state.skySelect.addEventListener('change', handleSkyChange);
   state.cityNameReset.addEventListener('click', resetCityName);
   state.tempConvertBt.addEventListener('click', tempConvert);
