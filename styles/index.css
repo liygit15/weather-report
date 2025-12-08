@@ -81,8 +81,10 @@ align-self: center;
 .temperature__content {
 display: flex;
 flex-direction: row;
-justify-content: space-around;
-/* justify-content: center; */
+/* justify-content: space-around; */
+justify-content: center;
+align-items: center;
+gap: 40px;
 }
 
 #tempValue {
@@ -96,6 +98,13 @@ margin-left: 1.5rem;
 display: flex;
 flex-direction: column;
 align-items: center;
+gap: 10px;
+}
+
+.temperature__buttons {
+  display: flex;
+  flex-direction: column; 
+  gap: 15px;
 }
 
 .garden__section > h2 {

@@ -8,56 +8,58 @@ const state = {
   cityName: 'Seattle',
   cityInput: null,
   cityDisplay: null,
-  currentTempButton: false,
+  currentTempButton: null,
   landscapeDiv: null,
   skySelect: null,
   skyDisplay: null,
   gardenBackground: null,
   cityNameReset: null,
+  tempConvertBt: null,
+  isCelsius: false
 };
 
 // wave 2
-const getTempData = (temp) => {
-  if (temp >= 80) {
-    return {
-      colorClass: 'red',
-      landscape: '🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂'
-    };
+const getTextColor = (temp) => {
+  if (state.isCelsius) {
+    if (temp >= 27) return 'red';
+    if (temp >= 21) return 'orange';
+    if (temp >= 16) return 'yellow';
+    if (temp >= 10) return 'green';
+    return 'teal';
+  } else {
+    if (temp >= 80) return 'red';
+    if (temp >= 70) return 'orange';
+    if (temp >= 60) return 'yellow';
+    if (temp >= 50) return 'green';
+    return 'teal';
   }
-  else if (temp >= 70) {
-    return {
-      colorClass: 'orange',
-      landscape: '🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷'
-    };
-  }
-  else if (temp >= 60) {
-    return {
-      colorClass: 'yellow',
-      landscape: '🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃'
-    };
-  }
-  else if (temp >= 50){
-    return {
-      colorClass: 'green',
-      landscape: '🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲'
-    };
-  }
-  else {
-    return {
-      colorClass: 'yellow-green',
-      landscape: '🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲'
-    };
+};
+
+const getLandscapeForTemp = (temp) => {
+  if (state.isCelsius) {
+    if (temp >= 27) return "🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂";
+    if (temp >= 21) return "🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷";
+    if (temp >= 16) return "🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃";
+    return "🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲";
+  } else {
+    if (temp >= 80) return "🌵__🐍_🦂_🌵🌵__🐍_🏜_🦂";
+    if (temp >= 70) return "🌸🌿🌼__🌷🌻🌿_☘️🌱_🌻🌷";
+    if (temp >= 60) return "🌾🌾_🍃_🪨__🛤_🌾🌾🌾_🍃";
+    return "🌲🌲⛄️🌲⛄️🍂🌲🍁🌲🌲⛄️🍂🌲";
   }
 };
 
 const updateTempDisplay = () => {
-  state.tempDisplay.textContent = `${state.currentTemp}°F`;
-  const tempData = getTempData(state.currentTemp);
+  const unit = state.isCelsius ? '°C' : '°F';
+  state.tempDisplay.textContent = `${state.currentTemp}${unit}`;
 
-  state.tempDisplay.classList.remove('red', 'orange', 'yellow', 'green', 'yellow-green');
-  state.tempDisplay.classList.add(tempData.colorClass);
+  state.tempDisplay.classList.remove('red', 'orange', 'yellow', 'green', 'teal');
 
-  state.landscapeDiv.textContent = tempData.landscape;
+  const color = getTextColor(state.currentTemp);
+  state.tempDisplay.classList.add(color);
+
+  const landscape = getLandscapeForTemp(state.currentTemp);
+  state.landscapeDiv.textContent = landscape;
 };
 
 const increaseTemp = () => {
@@ -80,7 +82,7 @@ const handleCityInput = (event) => {
 const findLatitudeAndLongitude = (query) => {
   let latitude, longitude;
   return axios
-    .get('http://localhost:5000/location',
+    .get('https://ada-weather-report-proxy-server.onrender.com/location',
       {params:{q: query}})
     .then((location) => {
       latitude = location.data[0].lat;
@@ -91,7 +93,7 @@ const findLatitudeAndLongitude = (query) => {
 
 const findWeather = (latitude, longitude) => {
   return axios
-    .get('http://localhost:5000/weather',
+    .get('https://ada-weather-report-proxy-server.onrender.com/weather',
       {params: {lat:latitude, lon:longitude}})
     .then((weather) => {
       const Kelvintemp = weather.data.main.temp;
@@ -107,6 +109,7 @@ const getTempFromInput = (query) => {
     })
     .then((Ftemp) => {
       state.currentTemp = Ftemp;
+      state.isCelsius = false;
       return state.currentTemp;
     })
     .catch((error) => {
@@ -127,27 +130,29 @@ const getSkySelection = (selectedOption) => {
       weatherClass: 'sunny'
     };
   }
-
   else if (selectedOption === 'Cloudy') {
     return {
       emojis: '☁️☁️ ☁️ ☁️☁️ ☁️ 🌤 ☁️ ☁️☁️',
       weatherClass: 'cloudy'
     };
   }
-
   else if (selectedOption === 'Rainy') {
     return {
       emojis: '🌧🌈⛈🌧🌧💧⛈🌧🌦🌧💧🌧🌧',
       weatherClass: 'rainy'
     };
   }
-
   else if (selectedOption === 'Snowy') {
     return {
       emojis: '🌨❄️🌨🌨❄️❄️🌨❄️🌨❄️❄️🌨🌨',
       weatherClass: 'snowy'
     };
   }
+
+  return {
+    emojis: '☁️ ☁️ ☁️ ☀️ ☁️ ☁️',
+    weatherClass: 'sunny'
+  };
 };
 
 const handleSkyChange = () => {
@@ -162,17 +167,34 @@ const handleSkyChange = () => {
 const resetCityName = () => {
   state.cityInput.value = 'Seattle';
   state.cityDisplay.textContent = 'Seattle';
+  state.cityName = 'Seattle';
+};
+
+// enhancements
+const tempConvert = () => {
+  if (!state.isCelsius) {
+    state.currentTemp = Math.round((state.currentTemp - 32) * 5 / 9);
+    state.isCelsius = true;
+  } else {
+    state.currentTemp = Math.round((state.currentTemp * 9 / 5) + 32);
+    state.isCelsius = false;
+  }
+  updateTempDisplay();
 };
 
 const registerEvents = () => {
   state.cityInput.addEventListener('input', handleCityInput);
   state.increaseBtn.addEventListener('click', increaseTemp);
   state.decreaseBtn.addEventListener('click', decreaseTemp);
+  
   state.currentTempButton.addEventListener('click', () => {
-    updateTempFromInput(state.cityName);
+    const cityName = state.cityInput.value;
+    updateTempFromInput(cityName);
   });
+  
   state.skySelect.addEventListener('change', handleSkyChange);
   state.cityNameReset.addEventListener('click', resetCityName);
+  state.tempConvertBt.addEventListener('click', tempConvert);
 };
 
 const loadControls = () => {
@@ -187,13 +209,17 @@ const loadControls = () => {
   state.skyDisplay = document.getElementById('sky');
   state.gardenBackground = document.getElementById('gardenContent');
   state.cityNameReset = document.getElementById('cityNameReset');
+  state.tempConvertBt = document.getElementById('temp_conversion_bt');
 };
 
 const onLoaded = () => {
   loadControls();
   registerEvents();
   updateTempDisplay();
+  updateTempFromInput(state.cityName);
   handleSkyChange();
+  state.cityInput.value = state.cityName;
+  state.cityDisplay.textContent = state.cityName;
 };
 
 onLoaded();
